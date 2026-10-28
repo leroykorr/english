@@ -14,7 +14,7 @@
  text-align: center;
  }
  
- /* --- HOVER SETTINGS PANEL --- */
+ /* --- HOVER / TOUCH SETTINGS PANEL --- */
  .hover-menu {
  position: fixed;
  top: 0;
@@ -40,17 +40,23 @@
  border-bottom-left-radius: 15px;
  border-bottom-right-radius: 15px;
  }
- .hover-menu:hover .hover-trigger {
+ 
+ /* Открытие по наведению (ПК) ИЛИ по клику (телефоны/ТВ) */
+ .hover-menu:hover .hover-trigger,
+ .hover-menu.open .hover-trigger {
  color: white;
  background-color: #3d566e;
  }
+ 
  .hover-content {
  max-height: 0;
  overflow: hidden;
  transition: max-height 0.4s ease-out;
  padding: 0 20px;
  }
- .hover-menu:hover .hover-content {
+ 
+ .hover-menu:hover .hover-content,
+ .hover-menu.open .hover-content {
  max-height: 450px;
  padding: 0 20px 20px 20px;
  overflow: visible;
@@ -367,10 +373,11 @@
 </head>
 <body>
 
- <!-- HOVER SETTINGS PANEL -->
- <div class="hover-menu">
- <div class="hover-trigger">Hover here to start ⬇</div>
- <div class="hover-content">
+ <!-- SETTINGS PANEL -->
+ <div class="hover-menu" id="settingsMenu">
+ <!-- Добавлен onclick для тапов на телефонах/ТВ -->
+ <div class="hover-trigger" onclick="toggleMenu()">Tap / Hover for settings ⬇</div>
+ <div class="hover-content" onclick="event.stopPropagation()">
  <div class="settings-panel">
  <div>
  <strong>1. Select colors:</strong>
@@ -454,6 +461,19 @@
  </div>
 
  <script>
+ // --- НОВАЯ ЛОГИКА ДЛЯ МЕНЮ (КЛИКИ / ТАПЫ) ---
+ function toggleMenu() {
+ document.getElementById('settingsMenu').classList.toggle('open');
+ }
+
+ // Закрываем меню при клике в любом другом месте экрана
+ document.addEventListener('click', function(event) {
+ const menu = document.getElementById('settingsMenu');
+ if (!menu.contains(event.target)) {
+ menu.classList.remove('open');
+ }
+ });
+
  // COLORS DATABASE
  const allColors = [
  { name: "RED", hex: "#FF0000" },
@@ -473,24 +493,18 @@
  let selectedColors = [];
  let currentLevel = 2;
  let currentLetterMode = 'sequential';
- let currentNumberMode = '1'; // 1, 12, random
+ let currentNumberMode = '1';
  
- // Tab 1
  let fcIndex = 0;
-
- // Tab 2
  let cardsData = [];
  let hasFlippedCard = false;
  let lockBoard = false;
  let firstCard, secondCard;
  let matchedPairs = 0;
-
- // Tab 4
  let fasterRunning = false;
  let fasterPaused = false;
  let fasterSequence = [];
 
- // --- INIT ---
  window.onload = function() {
  renderCheckboxes();
  for(let i=0; i<4; i++) {
@@ -560,7 +574,6 @@
  }
  }
 
- // --- SHUFFLE HELPER ---
  function shuffle(array) {
  let currentIndex = array.length, randomIndex;
  let tempArray = [...array]; 
@@ -619,7 +632,6 @@
  }
  });
 
- // Генерация номеров для карточек (новая логика)
  let cardNumbers = [];
  if (currentNumberMode === 'random') {
  let pool = [];
@@ -635,7 +647,6 @@
 
  let backContent = cardInfo.type === 'text' ? cardInfo.value : `<div class="color-block-game" style="background: ${cardInfo.hex};"></div>`;
 
- // Определение номера на рубашке
  let frontNumber = index + 1;
  if (currentNumberMode === '12') frontNumber = index + 12;
  if (currentNumberMode === 'random') frontNumber = cardNumbers[index];
@@ -704,7 +715,6 @@
  if (selectedColors.length === 0) return;
 
  let displayColors = shuffle(selectedColors);
- 
  let letters = [];
  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
  
